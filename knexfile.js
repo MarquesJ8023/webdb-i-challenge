@@ -4,12 +4,8 @@ module.exports = {
     connection: {
       filename: './data/budget.db3',
     },
-    useNullAsDefault: true,
-    migrations: {
-      directory: './data/migrations'
-    },
-    seeds: {
-      directory: './data/seeds'
-    }
-  },
+    useNullAsDefault: true
+  
+},
+
 };

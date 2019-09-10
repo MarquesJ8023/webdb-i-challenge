@@ -1,77 +1,45 @@
-const express = require('express');
+const db = require('./dbConfig');
 
-// database access using knex
-const db = require('./dbConfig.js');
+module.exports = {
+  find,
+  findById,
+  add,
+  remove,
+  update
+};
 
-const router = express.Router();
+function find(query={}) {
+  let { page = 1, limit = 5, sortby = 'id', sortdir = 'asc' } = query;
+  const offset = limit * (page - 1);
 
-router.get('/', (req, res) => {
-    db.select('*')
-        .from('accounts')
-        .then(posts => {
-            res.status(200).json(accounts);
-        })
-        .catch(err => {
-            res.json(err)
-        })
-});
+  let rows = db('accounts')
+    .orderBy(sortby, sortdir)
+    .limit(limit)
+    .offset(offset);
 
-router.get('/:id', (req, res) => {
-    const { id } = req.params;
+  return rows;
+}
 
-    db('accounts')
-        .where({ id })
-        .first()
-        .then(accounts => {
-            res.status(200).json(accounts);
-        })
-        .catch(err => {
-            res.json(err);
-        });
-});
+function findById(id) {
+  return db('accounts')
+    .where({ id })
+    .first();
+}
 
-router.post('/', (req, res) => {
-    const accountData = res.body;
-        //validate postData before inserting into db
+async function add(account) {
+  const [id] = await db('accounts').insert(account);
 
-    db('accounts')
-    .insert(accountData, 'id')
-    .then(([id]) => {
-        db('accounts')
-        .where({ id })
-        .first()
-        .then(posts => {
-            res.status(200).json(accounts);
-        })
+  return findById(id);
+}
 
-    })     
-    .catch(err => {
-        res.json(err)
-    })
-});
+function remove(id) {
+  return db('accounts')
+    .where({ id })
+    .del();
+}
 
-router.put('/:id', (req, res) => {
-const changes = req.body;
-db('accounts')
-.where('id', req.params.id)
-.then(count => {
-    res.status(200).json({message: `updated ${count} records`})
-})
-.catch(err => {
-    res.json(err)
-})
-});
-
-router.delete('/:id', (req, res) => {
-    db('accounts')
-    .where({id: req.params.id})
-    .del()
-    .then(count => {
-        res.status(200).json({message: `deleted${count} records`})
-    })
-    .catch(err => {
-        res.json(err)
-    })
-});
-
-module.exports = router;
+function update(id, changes) {
+  return db('accounts')
+    .where({ id })
+    .update(changes, '*');
+}
